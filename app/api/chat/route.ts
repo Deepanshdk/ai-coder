@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to process request' },
+      { error: 'Failed to process request'+(error as Error).message },
       { status: 500 }
     )
   }
