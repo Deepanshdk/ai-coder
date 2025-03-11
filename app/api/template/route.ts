@@ -9,17 +9,12 @@ import {basePrompt as reactBasePrompt} from "@/lib/defaults/react";
 export async function POST(req: Request) {
     try {
         const { prompt } = await req.json()
-
         const response = await generateText({
             model: groq("llama3-70b-8192"),
             system: "Return either node or react based on what do you think this project should be. Only return a single word either 'node' or 'react'. Do not return anything extra",
             prompt: prompt,
         })
-
         const answer = response.text
-
-
-        console.log(answer)
 
         if (answer === "react") {
             return NextResponse.json({

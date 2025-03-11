@@ -5,14 +5,14 @@ import { StepsList } from '@/components/StepsList';
 import { FileExplorer } from '@/components/FileExplorer';
 import { TabView } from '@/components/TabView';
 import { CodeEditor } from '@/components/CodeEditor';
-import { PreviewFrame } from '@/components/PreviewFrame';
+import  PreviewFrame  from '@/components/PreviewFrame';
 import { Step, FileItem, StepType } from '@/types';
 import axios from 'axios';
 import { BACKEND_URL } from '@/lib/config';
 import { parseXml } from '@/lib/steps';
 import { useWebContainer } from '@/hooks/useWebContainer';
 import { Loader } from '@/components/Loader';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { WebContainer } from '@webcontainer/api';
 
 const MOCK_FILE_CONTENT = `// This is a sample file content
@@ -33,6 +33,8 @@ export default function Builder() {
   const [loading, setLoading] = useState(false);
   const [templateSet, setTemplateSet] = useState(false);
   const webcontainer = useWebContainer();
+
+  const router=useRouter()
 
   const [currentStep, setCurrentStep] = useState(1);
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
@@ -93,14 +95,12 @@ export default function Builder() {
     })
 
     if (updateHappened) {
-
       setFiles(originalFiles)
       setSteps(steps => steps.map((s: Step) => {
         return {
           ...s,
           status: "completed"
         }
-        
       }))
     }
     console.log(files);
@@ -196,7 +196,10 @@ export default function Builder() {
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
       <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-100">Website Builder</h1>
+      <button onClick={()=>router.push("/")}>
+      <h1 className="text-xl font-semibold text-gray-100">Website Builder</h1>
+      </button>
+       
         <p className="text-sm text-gray-400 mt-1">Prompt: {prompt}</p>
       </header>
       
@@ -204,7 +207,7 @@ export default function Builder() {
         <div className="h-full grid grid-cols-4 gap-6 p-6">
           <div className="col-span-1 space-y-6 overflow-auto">
             <div>
-              <div className="max-h-[75vh] overflow-scroll">
+              <div className="max-h-[75vh] overflow-y-scroll">
                 <StepsList
                   steps={steps}
                   currentStep={currentStep}
@@ -216,33 +219,6 @@ export default function Builder() {
                   <br />
                   {(loading || !templateSet) && <Loader />}
                   {!(loading || !templateSet) && <div className='flex'>
-                    <textarea value={userPrompt} onChange={(e) => {
-                    setPrompt(e.target.value)
-                  }} className='p-2 w-full'></textarea>
-                  <button onClick={async () => {
-                    const newMessage = {
-                      role: "user" as "user",
-                      content: userPrompt
-                    };
-
-                    setLoading(true);
-                    const stepsResponse = await axios.post(`${BACKEND_URL}/chat`, {
-                      messages: [...llmMessages, newMessage]
-                    });
-                    setLoading(false);
-
-                    setLlmMessages(x => [...x, newMessage]);
-                    setLlmMessages(x => [...x, {
-                      role: "assistant",
-                      content: stepsResponse.data.response
-                    }]);
-                    
-                    setSteps(s => [...s, ...parseXml(stepsResponse.data.response).map(x => ({
-                      ...x,
-                      status: "pending" as "pending"
-                    }))]);
-
-                  }} className='bg-purple-400 px-4'>Send</button>
                   </div>}
                 </div>
               </div>
